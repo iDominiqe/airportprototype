@@ -15,11 +15,13 @@ import { TopHeaderBar } from './components/TopHeaderBar';
 import { BookingPanel } from './components/BookingPanel';
 import { CheckoutModal } from './components/CheckoutModal';
 import { TakeoffHUD } from './components/TakeoffHUD';
+import { SceneLoader } from './components/SceneLoader';
+import { useScenePreloader } from './hooks/useScenePreloader';
 
 const INITIAL_TELEMETRY: TelemetryState = {
   phase: 'idle',
-  airspeedKts: 0,
-  altitudeFt: 0,
+  airspeedKmh: 0,
+  altitudeM: 0,
   thrustN1Pct: 24,
   gearState: 'DOWN',
   elapsedSec: 0,
@@ -27,12 +29,15 @@ const INITIAL_TELEMETRY: TelemetryState = {
 };
 
 export const App: React.FC = () => {
+  const { stages, progress, sceneReady, markCanvasCreated } = useScenePreloader();
+
   const [lightingMode, setLightingMode] = useState<LightingMode>('day');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('overview');
   const [cameraActionNonce, setCameraActionNonce] = useState(0);
   const [hudCollapsed, setHudCollapsed] = useState(false);
 
-  const [selectedDestination, setSelectedDestination] = useState<Destination>(DESTINATIONS[5]); // Dubai DXB default showcase (787)
+  // Default to Dubai DXB (Airbus A350-900 XWB)
+  const [selectedDestination, setSelectedDestination] = useState<Destination>(DESTINATIONS[5]);
   const seats = useMemo(
     () => generateSeatsForDestination(selectedDestination),
     [selectedDestination]
@@ -102,6 +107,9 @@ export const App: React.FC = () => {
       data-lighting={lightingMode}
       className="relative w-screen h-screen overflow-hidden bg-slate-950"
     >
+      {/* Staged 3D Preloader Splash */}
+      <SceneLoader stages={stages} progress={progress} sceneReady={sceneReady} />
+
       {/* Full-Bleed Interactive 3D Airport & Globe Viewport */}
       <AirportCanvas
         lightingMode={lightingMode}
@@ -113,9 +121,10 @@ export const App: React.FC = () => {
         takeoffRunId={takeoffRunId}
         onPhaseChange={setTakeoffPhase}
         onTelemetryUpdate={setTelemetry}
+        onCanvasReady={markCanvasCreated}
       />
 
-      {/* Top Glassmorphism Aviation Header */}
+      {/* Top Ceramic Bento Aviation Header */}
       <TopHeaderBar
         cameraPreset={cameraPreset}
         onSelectCamera={handleSelectCamera}
@@ -126,7 +135,7 @@ export const App: React.FC = () => {
         takeoffPhase={takeoffPhase}
       />
 
-      {/* Booking Dock (Visible in Idle Mode unless collapsed) */}
+      {/* Left Bento Booking Dock */}
       {takeoffPhase === 'idle' && !hudCollapsed && (
         <BookingPanel
           selectedDestination={selectedDestination}
@@ -136,25 +145,25 @@ export const App: React.FC = () => {
           selectedSeat={selectedSeat}
           onSelectSeat={(s) => setSelectedSeatId(s.id)}
           totalPriceEur={totalPriceEur}
-          onOpenGlobe={() => setCameraPreset('globe')}
+          onOpenGlobe={() => handleSelectCamera('globe')}
           onProceedToPayment={() => setCheckoutOpen(true)}
         />
       )}
 
       {/* Dual-Runway Live Ops Pill (Bottom Right in Idle Mode) */}
       {takeoffPhase === 'idle' && (
-        <div className="pointer-events-none fixed bottom-4 right-4 z-20 hidden md:flex items-center gap-3 glass-panel rounded-2xl px-3.5 py-2 text-[11px] font-mono text-slate-200">
+        <div className="pointer-events-none fixed bottom-4 right-4 z-20 hidden md:flex items-center gap-3 bento-card rounded-full px-4 py-2 text-[11px] font-mono ink-primary">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-sky-400" />
-            <span>RWY 08L: ARRIVALS</span>
+            <span className="w-2 h-2 rounded-full bg-sky-500" />
+            <span>RWY 08L: ARR</span>
           </div>
-          <span className="text-slate-600">|</span>
+          <span className="opacity-30">|</span>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-            <span>RWY 08R: DEPARTURES</span>
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span>RWY 08R: DEP</span>
           </div>
-          <span className="text-slate-600">|</span>
-          <span className="text-slate-400">Drag to orbit · Scroll to zoom</span>
+          <span className="opacity-30">|</span>
+          <span className="ink-muted">Drag to orbit · Scroll to zoom</span>
         </div>
       )}
 

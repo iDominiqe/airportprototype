@@ -2,31 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --hud-bg: rgba(10, 18, 34, 0.72);
-  --hud-bg-elevated: rgba(14, 24, 46, 0.84);
-  --hud-border: rgba(148, 189, 255, 0.22);
-  --hud-text: #f1f5f9;
-  --hud-muted: #94a3b8;
-  --hud-accent: #38bdf8;
-}
-
+:root,
 [data-lighting='day'] {
-  --hud-bg: rgba(12, 22, 42, 0.72);
-  --hud-bg-elevated: rgba(15, 28, 52, 0.84);
-  --hud-border: rgba(148, 197, 255, 0.26);
+  --bento-bg: rgba(255, 255, 255, 0.80);
+  --bento-bg-elevated: rgba(255, 255, 255, 0.90);
+  --bento-sub: rgba(15, 23, 42, 0.045);
+  --bento-sub-strong: rgba(255, 255, 255, 0.72);
+  --bento-border: rgba(255, 255, 255, 0.85);
+  --bento-hairline: rgba(15, 23, 42, 0.09);
+  --ink-primary: #0f172a;
+  --ink-secondary: #475569;
+  --ink-muted: #64748b;
+  --pill-active-bg: #0f172a;
+  --pill-active-ink: #ffffff;
+  --bento-shadow: 0 22px 50px -14px rgba(15, 23, 42, 0.16), inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
 }
 
 [data-lighting='sunset'] {
-  --hud-bg: rgba(24, 16, 32, 0.74);
-  --hud-bg-elevated: rgba(32, 20, 42, 0.86);
-  --hud-border: rgba(251, 146, 60, 0.28);
+  --bento-bg: rgba(255, 248, 243, 0.82);
+  --bento-bg-elevated: rgba(255, 250, 246, 0.92);
+  --bento-sub: rgba(67, 20, 7, 0.055);
+  --bento-sub-strong: rgba(255, 255, 255, 0.75);
+  --bento-border: rgba(255, 237, 213, 0.85);
+  --bento-hairline: rgba(124, 45, 18, 0.11);
+  --ink-primary: #1e1b2e;
+  --ink-secondary: #57414d;
+  --ink-muted: #7c5f6b;
+  --pill-active-bg: #1e1b2e;
+  --pill-active-ink: #fff7ed;
+  --bento-shadow: 0 22px 50px -14px rgba(45, 15, 30, 0.22), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
 }
 
 [data-lighting='night'] {
-  --hud-bg: rgba(6, 11, 22, 0.78);
-  --hud-bg-elevated: rgba(9, 16, 32, 0.9);
-  --hud-border: rgba(56, 189, 248, 0.28);
+  --bento-bg: rgba(9, 15, 30, 0.80);
+  --bento-bg-elevated: rgba(12, 20, 38, 0.92);
+  --bento-sub: rgba(255, 255, 255, 0.06);
+  --bento-sub-strong: rgba(15, 23, 42, 0.65);
+  --bento-border: rgba(125, 211, 252, 0.22);
+  --bento-hairline: rgba(148, 163, 184, 0.18);
+  --ink-primary: #f8fafc;
+  --ink-secondary: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --pill-active-bg: #38bdf8;
+  --pill-active-ink: #081224;
+  --bento-shadow: 0 24px 56px -14px rgba(2, 6, 23, 0.78), inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
 }
 
 html,
@@ -40,31 +59,75 @@ body,
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-.glass-panel {
-  background: var(--hud-bg);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  border: 1px solid var(--hud-border);
-  box-shadow:
-    0 20px 50px -12px rgba(2, 6, 23, 0.55),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+.bento-card {
+  background: var(--bento-bg);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
+  border: 1px solid var(--bento-border);
+  box-shadow: var(--bento-shadow);
+  color: var(--ink-primary);
 }
 
-.glass-elevated {
-  background: var(--hud-bg-elevated);
-  backdrop-filter: blur(22px) saturate(165%);
-  -webkit-backdrop-filter: blur(22px) saturate(165%);
-  border: 1px solid var(--hud-border);
-  box-shadow:
-    0 25px 60px -14px rgba(2, 6, 23, 0.75),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+.bento-elevated {
+  background: var(--bento-bg-elevated);
+  backdrop-filter: blur(26px) saturate(175%);
+  -webkit-backdrop-filter: blur(26px) saturate(175%);
+  border: 1px solid var(--bento-border);
+  box-shadow: var(--bento-shadow);
+  color: var(--ink-primary);
 }
 
-.glass-pill {
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(148, 163, 184, 0.22);
+.bento-sub {
+  background: var(--bento-sub);
+  border: 1px solid var(--bento-hairline);
+}
+
+.bento-sub-strong {
+  background: var(--bento-sub-strong);
+  border: 1px solid var(--bento-hairline);
+}
+
+.aura-hero {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(167, 243, 208, 0.75), transparent 52%),
+    radial-gradient(circle at 86% 22%, rgba(186, 230, 253, 0.85), transparent 52%),
+    radial-gradient(circle at 52% 92%, rgba(253, 186, 116, 0.72), transparent 58%),
+    linear-gradient(135deg, rgba(240, 249, 255, 0.92), rgba(245, 243, 255, 0.92));
+  color: #0f172a;
+}
+
+[data-lighting='night'] .aura-hero {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(45, 212, 191, 0.28), transparent 55%),
+    radial-gradient(circle at 85% 25%, rgba(56, 189, 248, 0.32), transparent 55%),
+    radial-gradient(circle at 55% 95%, rgba(167, 139, 250, 0.28), transparent 60%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(17, 24, 39, 0.92));
+  color: #f8fafc;
+}
+
+.iridescent-cta {
+  background: linear-gradient(115deg, #a78bfa 0%, #38bdf8 48%, #34d399 100%);
+  color: #081224;
+  box-shadow:
+    0 12px 26px -8px rgba(56, 189, 248, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+
+.iridescent-cta:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.ink-primary {
+  color: var(--ink-primary);
+}
+
+.ink-secondary {
+  color: var(--ink-secondary);
+}
+
+.ink-muted {
+  color: var(--ink-muted);
 }
 
 .slim-scroll::-webkit-scrollbar {
@@ -77,12 +140,12 @@ body,
 }
 
 .slim-scroll::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.28);
+  background: rgba(100, 116, 139, 0.32);
   border-radius: 9999px;
 }
 
 .slim-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.55);
 }
 
 @keyframes pulseBeacon {
@@ -98,9 +161,4 @@ body,
 
 .animate-beacon {
   animation: pulseBeacon 1.6s ease-in-out infinite;
-}
-
-.boarding-perforation {
-  background-image: radial-gradient(circle at 0 50%, transparent 7px, rgba(15, 23, 42, 0.85) 7.5px),
-    radial-gradient(circle at 100% 50%, transparent 7px, rgba(15, 23, 42, 0.85) 7.5px);
 }

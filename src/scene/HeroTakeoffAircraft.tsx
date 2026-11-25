@@ -86,8 +86,8 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
     let curGear = 1;
     let curThrust = 0.2;
     let curLights = false;
-    let airspeedKts = 0;
-    let altitudeFt = 0;
+    let airspeedKmh = 0;
+    let altitudeM = 0;
     let atcCallout = 'RMO Ground: Tug connected, pushback approved Gate G3.';
 
     if (t < 4.5) {
@@ -99,14 +99,14 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       heading = THREE.MathUtils.lerp(Math.PI / 2, Math.PI, smooth);
       phase = 'pushback';
       curThrust = 0.18;
-      airspeedKts = Math.round(smooth * 6);
+      airspeedKmh = Math.round(smooth * 12);
       atcCallout = 'RMO Ground: Cleared pushback Gate G3, facing West on Apron Alpha.';
     } else if (t < 11.5) {
       // 4.5 -> 11.5s: Taxi West to West Entry, turn South to 08R, line up East
       const u = (t - 4.5) / 7.0;
       phase = 'taxi';
       curThrust = 0.28;
-      airspeedKts = 18;
+      airspeedKmh = 34;
       atcCallout = 'RMO Tower: Taxi via Alpha & Whiskey-1, line up Runway 08R.';
       if (u < 0.48) {
         const s = u / 0.48;
@@ -134,8 +134,8 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       heading = 0;
       curThrust = THREE.MathUtils.lerp(0.32, 1.0, u);
       curLights = true;
-      airspeedKts = Math.round(u * 8);
-      atcCallout = 'RMO Tower: Winds 080° at 7 kts, Runway 08R cleared for takeoff.';
+      airspeedKmh = Math.round(u * 15);
+      atcCallout = 'RMO Tower: Winds 080° at 14 km/h, Runway 08R cleared for takeoff.';
     } else if (t < 19.5) {
       // 14.0 -> 19.5s: Accelerate down Runway 08R to V2
       const u = (t - 14.0) / 5.5;
@@ -147,9 +147,9 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       y = u > 0.9 ? THREE.MathUtils.lerp(0, 0.9, (u - 0.9) / 0.1) : 0;
       curThrust = 1.0;
       curLights = true;
-      airspeedKts = Math.round(THREE.MathUtils.lerp(12, 162, u));
-      altitudeFt = Math.round(y * 120);
-      atcCallout = u < 0.55 ? 'Crew: Thrust set, 80 knots checked.' : 'Crew: V1... Rotate!';
+      airspeedKmh = Math.round(THREE.MathUtils.lerp(22, 300, u));
+      altitudeM = Math.round(y * 40);
+      atcCallout = u < 0.55 ? 'Crew: Thrust set, 150 km/h checked.' : 'Crew: V1 (270 km/h)... Rotate!';
     } else if (t < 27.5) {
       // 19.5 -> 27.5s: Positive climb, gear up, climb smoothly into the clouds
       const u = (t - 19.5) / 8.0;
@@ -163,12 +163,12 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       curGear = t < 20.8 ? 1 : t > 23.6 ? 0 : 1 - (t - 20.8) / 2.8;
       curThrust = 0.96;
       curLights = t < 24.5;
-      airspeedKts = Math.round(THREE.MathUtils.lerp(162, 248, u));
-      altitudeFt = Math.round(y * 135);
+      airspeedKmh = Math.round(THREE.MathUtils.lerp(300, 460, u));
+      altitudeM = Math.round(y * 42);
       atcCallout =
         t < 23.5
           ? 'Crew: Positive rate — Gear Up!'
-          : 'RMO Departure: Radar contact, climb and maintain FL180.';
+          : 'RMO Departure: Radar contact, climb and maintain 5,500 m.';
     } else {
       // 27.5s+: Departed — graceful steady cruise climb
       const extra = Math.min(25, t - 27.5);
@@ -181,8 +181,8 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       curGear = 0;
       curThrust = 0.88;
       curLights = false;
-      airspeedKts = Math.round(250 + extra * 3.5);
-      altitudeFt = Math.round(y * 135);
+      airspeedKmh = Math.round(464 + extra * 6.5);
+      altitudeM = Math.round(y * 42);
       atcCallout = 'FLIGHT DEPARTED — HAVE A NICE TRIP!';
     }
 
@@ -209,8 +209,8 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       setLandingLights(curLights);
       onTelemetryUpdate({
         phase,
-        airspeedKts,
-        altitudeFt,
+        airspeedKmh,
+        altitudeM,
         thrustN1Pct: Math.round(22 + curThrust * 76),
         gearState: curGear > 0.92 ? 'DOWN' : curGear < 0.08 ? 'UP' : 'TRANSIT',
         elapsedSec: Math.round(t),

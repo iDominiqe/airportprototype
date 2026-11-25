@@ -339,7 +339,7 @@ export const AirTrafficController: React.FC<AirTrafficControllerProps> = ({
       {/* Left Runway 08L — Continuous Arrivals */}
       <ArrivalPlane
         offsetSec={2}
-        variant="b787"
+        variant="a350"
         livery="nova"
         lightingMode={lightingMode}
         onTouchdown={triggerTouchdownSmoke}
@@ -362,7 +362,7 @@ export const AirTrafficController: React.FC<AirTrafficControllerProps> = ({
       />
       <DeparturePlane
         offsetSec={13}
-        variant="a350"
+        variant="a380"
         livery="pacific"
         lightingMode={lightingMode}
         yieldForHero={yieldForHero}

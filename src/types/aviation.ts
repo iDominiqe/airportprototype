@@ -2,7 +2,7 @@ export type LightingMode = 'day' | 'sunset' | 'night';
 
 export type CameraPreset = 'overview' | 'tower' | 'departure' | 'globe';
 
-export type AircraftVariant = 'b787' | 'b737' | 'a320' | 'a350';
+export type AircraftVariant = 'a380' | 'a350' | 'b787' | 'a320' | 'b737';
 
 export type AirlineLivery = 'nova' | 'euro' | 'sky' | 'pacific';
 
@@ -38,6 +38,10 @@ export interface Destination {
   flightNumber: string;
   aircraftVariant: AircraftVariant;
   aircraftName: string;
+  wingspanM: number;
+  lengthM: number;
+  engineCount: 2 | 4;
+  decks: 1 | 2;
   gate: string;
   departureTime: string;
   baseFareEur: number;
@@ -76,8 +80,8 @@ export interface BookingRecord {
 
 export interface TelemetryState {
   phase: TakeoffPhase;
-  airspeedKts: number;
-  altitudeFt: number;
+  airspeedKmh: number;
+  altitudeM: number;
   thrustN1Pct: number;
   gearState: 'DOWN' | 'TRANSIT' | 'UP';
   elapsedSec: number;

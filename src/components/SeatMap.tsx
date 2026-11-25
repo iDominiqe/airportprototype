@@ -17,41 +17,41 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const rows = Array.from({ length: 14 }, (_, i) => i + 1);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {/* Legend */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-300 bg-slate-900/55 rounded-xl px-2.5 py-2 border border-slate-700/50">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] ink-secondary bento-sub rounded-2xl px-3 py-2">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-amber-400/25 border border-amber-400/70 inline-block" />
+          <span className="w-3 h-3 rounded-md bg-amber-400/25 border border-amber-500/70 inline-block" />
           <span>Business</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-emerald-400/25 border border-emerald-400/70 inline-block" />
+          <span className="w-3 h-3 rounded-md bg-emerald-400/25 border border-emerald-500/70 inline-block" />
           <span>Legroom</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-slate-700/70 border border-slate-500/60 inline-block" />
+          <span className="w-3 h-3 rounded-md bg-slate-400/20 border border-slate-400/60 inline-block" />
           <span>Economy</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-sky-400 border border-sky-200 inline-block" />
+          <span className="w-3 h-3 rounded-md bg-sky-500 border border-sky-300 inline-block" />
           <span>Selected</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-slate-800/60 border border-slate-700/60 opacity-40 inline-block" />
-          <span>Occupied</span>
+          <span className="w-3 h-3 rounded-md bg-slate-500/20 border border-slate-500/40 inline-block" />
+          <span>Taken</span>
         </div>
       </div>
 
-      {/* Aircraft Fuselage Frame */}
-      <div className="rounded-2xl bg-slate-950/65 border border-slate-700/50 p-3">
+      {/* Aircraft Cabin Frame */}
+      <div className="rounded-2xl bento-sub p-3">
         <div className="text-center mb-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-slate-800/80 border border-slate-600/40 text-[10px] font-mono text-sky-300">
-            {destination.aircraftName.toUpperCase()} · CABIN DECK
+          <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bento-sub-strong text-[10px] font-mono font-semibold ink-secondary">
+            {destination.aircraftName.toUpperCase()} · {destination.decks === 2 ? 'DOUBLE DECK' : 'CABIN DECK'}
           </div>
         </div>
 
         {/* Column Header */}
-        <div className="grid grid-cols-[1fr_1fr_1fr_18px_1fr_1fr_1fr] gap-1 text-center text-[10px] font-mono text-slate-400 mb-1.5 px-1">
+        <div className="grid grid-cols-[1fr_1fr_1fr_18px_1fr_1fr_1fr] gap-1 text-center text-[10px] font-mono ink-muted mb-1.5 px-0.5">
           <span>A (Win)</span>
           <span>B</span>
           <span>C (Aisle)</span>
@@ -61,7 +61,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
           <span>F (Win)</span>
         </div>
 
-        <div className="space-y-1 max-h-[210px] overflow-y-auto slim-scroll pr-1">
+        <div className="space-y-1 max-h-[205px] overflow-y-auto slim-scroll pr-1">
           {rows.map((rowNum) => {
             const rowSeats = seats.filter((s) => s.row === rowNum);
             const isBusiness = rowNum <= 3;
@@ -86,7 +86,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                       onSelect={onSelectSeat}
                     />
                   ))}
-                  <span className="text-center font-mono text-[10px] text-amber-300/80">
+                  <span className="text-center font-mono text-[10px] font-semibold text-amber-600 dark:text-amber-400">
                     {rowNum}
                   </span>
                   {[sD, sF].map((seat) => (
@@ -107,7 +107,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
             return (
               <React.Fragment key={rowNum}>
                 {isLegroom && (
-                  <div className="text-[9px] font-mono uppercase tracking-wider text-emerald-300/90 text-center py-0.5 border-y border-emerald-500/20 my-1">
+                  <div className="text-[9px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-300 text-center py-0.5 border-y border-emerald-500/25 my-1">
                     Exit Row · Extra Legroom (+€35)
                   </div>
                 )}
@@ -120,7 +120,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                       onSelect={onSelectSeat}
                     />
                   ))}
-                  <span className="text-center font-mono text-[10px] text-slate-400">
+                  <span className="text-center font-mono text-[10px] ink-muted">
                     {rowNum}
                   </span>
                   {rightCols.map((seat) => (
@@ -151,20 +151,20 @@ function SeatButton({
   onSelect: (seat: Seat) => void;
 }) {
   let colorClass =
-    'bg-slate-800/85 border-slate-600/60 text-slate-200 hover:border-sky-400 hover:bg-sky-500/20';
+    'bento-sub-strong ink-primary hover:border-sky-400 hover:bg-sky-400/20';
 
   if (seat.occupied) {
     colorClass =
-      'bg-slate-800/80 border-slate-700/80 text-slate-400 cursor-not-allowed opacity-70';
+      'bg-slate-400/15 border-slate-400/30 ink-muted cursor-not-allowed opacity-65';
   } else if (selected) {
     colorClass =
-      'bg-sky-400 border-sky-200 text-slate-950 font-bold shadow-md shadow-sky-400/30 scale-[1.03]';
+      'bg-gradient-to-br from-sky-400 to-indigo-500 border-sky-200 text-slate-950 font-bold shadow-md shadow-sky-500/25 scale-[1.03]';
   } else if (seat.seatClass === 'business') {
     colorClass =
-      'bg-amber-400/15 border-amber-400/55 text-amber-200 hover:bg-amber-400/30';
+      'bg-amber-400/20 border-amber-500/55 ink-primary hover:bg-amber-400/35';
   } else if (seat.seatClass === 'legroom') {
     colorClass =
-      'bg-emerald-400/15 border-emerald-400/55 text-emerald-200 hover:bg-emerald-400/30';
+      'bg-emerald-400/20 border-emerald-500/55 ink-primary hover:bg-emerald-400/35';
   }
 
   return (
@@ -177,7 +177,7 @@ function SeatButton({
           ? `Seat ${seat.id} — Occupied`
           : `Seat ${seat.id} (${seat.positionType}) · +€${seat.feeEur}`
       }
-      className={`h-7 rounded-md border font-mono text-[10px] transition-all flex items-center justify-center ${colorClass}`}
+      className={`h-7 rounded-lg border font-mono text-[10px] transition-all flex items-center justify-center ${colorClass}`}
     >
       {seat.occupied ? '×' : seat.id}
     </button>

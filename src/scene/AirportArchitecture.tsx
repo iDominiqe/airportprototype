@@ -132,7 +132,7 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
   });
 
   const groundColor =
-    lightingMode === 'night' ? '#0c1622' : lightingMode === 'sunset' ? '#1e2c2b' : '#2b4436';
+    lightingMode === 'night' ? '#0c1622' : lightingMode === 'sunset' ? '#242e30' : '#354f44';
   const asphaltColor = '#1b222c';
 
   return (
@@ -529,10 +529,10 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
         <AircraftModel variant="b737" livery="euro" thrustLevel={0.05} lightingMode={lightingMode} />
       </group>
       <group position={[GATE_COORDS.G5.x, 0, GATE_COORDS.G5.z]} rotation={[0, Math.PI / 2, 0]}>
-        <AircraftModel variant="a320" livery="sky" thrustLevel={0.05} lightingMode={lightingMode} />
+        <AircraftModel variant="a350" livery="sky" thrustLevel={0.05} lightingMode={lightingMode} />
       </group>
       <group position={[GATE_COORDS.G6.x, 0, GATE_COORDS.G6.z]} rotation={[0, Math.PI / 2, 0]}>
-        <AircraftModel variant="a350" livery="pacific" thrustLevel={0.05} lightingMode={lightingMode} />
+        <AircraftModel variant="a380" livery="pacific" thrustLevel={0.05} lightingMode={lightingMode} />
       </group>
     </group>
   );

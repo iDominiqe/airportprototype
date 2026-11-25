@@ -6,7 +6,6 @@ import {
   Globe2,
   Moon,
   Plane,
-  Radio,
   Sun,
   Sunset,
   TowerControl,
@@ -56,31 +55,24 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
 }) => {
   return (
     <header className="pointer-events-none fixed top-0 left-0 right-0 z-30 p-3 md:px-4 md:py-3 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
-      {/* Brand & Live RMO ATC Status */}
-      <div className="pointer-events-auto glass-panel rounded-2xl px-3 py-1.5 flex items-center gap-2.5 shrink-0">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
-          <Plane className="w-4 h-4 text-slate-950 -rotate-45" />
+      {/* Brand + Meridian-Style Live Tower Pill */}
+      <div className="pointer-events-auto bento-card rounded-full px-3 py-1.5 flex items-center gap-2.5 shrink-0">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sky-400 via-cyan-300 to-violet-400 flex items-center justify-center shadow-sm">
+          <Plane className="w-3.5 h-3.5 text-slate-950 -rotate-45" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-display font-extrabold tracking-tight text-sm text-white whitespace-nowrap">
-              RMO SKYHUB
-            </span>
-            <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30">
-              LUKK · 3D
-            </span>
-          </div>
-          <p className="text-[10px] text-slate-300/90 hidden xl:block whitespace-nowrap">
-            Chișinău International Airport · Moldova
-          </p>
+        <div className="flex items-center gap-2">
+          <span className="font-display font-extrabold tracking-tight text-sm ink-primary whitespace-nowrap">
+            RMO SKYHUB
+          </span>
+          <span className="hidden xl:inline text-[11px] ink-muted whitespace-nowrap">
+            Chișinău · LUKK
+          </span>
         </div>
 
-        <div className="hidden 2xl:flex items-center gap-1.5 pl-2.5 ml-1 border-l border-slate-500/30">
-          <Radio className="w-3.5 h-3.5 text-emerald-400 animate-beacon" />
-          <span className="font-mono text-[10px] text-emerald-300 uppercase tracking-wider whitespace-nowrap">
-            {takeoffPhase === 'idle'
-              ? '08L ARR · 08R DEP ACTIVE'
-              : '08R TAKEOFF PRIORITY'}
+        <div className="hidden 2xl:flex items-center gap-1.5 pl-2.5 ml-0.5 border-l border-slate-400/30">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-beacon" />
+          <span className="font-mono text-[10px] font-semibold ink-secondary whitespace-nowrap">
+            {takeoffPhase === 'idle' ? 'RMO Tower : Live' : '08R Takeoff : Active'}
           </span>
         </div>
       </div>
@@ -88,7 +80,7 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
       {/* Quick Camera Presets */}
       <nav
         aria-label="Camera Presets"
-        className="pointer-events-auto glass-panel rounded-2xl p-1 flex items-center gap-1 overflow-x-auto max-w-full shrink"
+        className="pointer-events-auto bento-card rounded-full p-1 flex items-center gap-1 overflow-x-auto max-w-full shrink"
       >
         {CAMERA_BUTTONS.map((btn) => {
           const Icon = btn.icon;
@@ -99,10 +91,13 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
               type="button"
               onClick={() => onSelectCamera(btn.id)}
               title={btn.label}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+              style={
                 active
-                  ? 'bg-sky-400 text-slate-950 font-semibold shadow-md shadow-sky-500/30'
-                  : 'text-slate-200 hover:bg-white/10'
+                  ? { backgroundColor: 'var(--pill-active-bg)', color: 'var(--pill-active-ink)' }
+                  : undefined
+              }
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                active ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
               }`}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -118,7 +113,7 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
         <div
           role="group"
           aria-label="Environment Lighting"
-          className="glass-panel rounded-2xl p-1 flex items-center gap-1"
+          className="bento-card rounded-full p-1 flex items-center gap-1"
         >
           {LIGHTING_OPTIONS.map((opt) => {
             const Icon = opt.icon;
@@ -128,14 +123,13 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
                 key={opt.id}
                 type="button"
                 onClick={() => onSelectLighting(opt.id)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                style={
                   active
-                    ? opt.id === 'sunset'
-                      ? 'bg-amber-400 text-slate-950 font-semibold'
-                      : opt.id === 'night'
-                        ? 'bg-indigo-400 text-slate-950 font-semibold'
-                        : 'bg-sky-400 text-slate-950 font-semibold'
-                    : 'text-slate-200 hover:bg-white/10'
+                    ? { backgroundColor: 'var(--pill-active-bg)', color: 'var(--pill-active-ink)' }
+                    : undefined
+                }
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                  active ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -150,7 +144,7 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
             type="button"
             onClick={onToggleHud}
             title={hudCollapsed ? 'Show Booking Console' : 'Hide Booking Console'}
-            className="glass-elevated rounded-2xl p-2 text-white hover:text-sky-300 hover:bg-slate-800/90 transition-all cursor-pointer"
+            className="bento-elevated rounded-full p-2 ink-primary hover:opacity-80 transition-all cursor-pointer"
           >
             {hudCollapsed ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
           </button>
