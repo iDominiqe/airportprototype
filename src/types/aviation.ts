@@ -1,5 +1,7 @@
 export type LightingMode = 'day' | 'sunset' | 'night';
 
+export type GraphicsQuality = 'hd' | 'clay';
+
 export type CameraPreset = 'overview' | 'tower' | 'departure' | 'globe';
 
 export type AircraftVariant = 'a380' | 'a350' | 'b787' | 'a320' | 'b737';

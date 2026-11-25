@@ -4,19 +4,23 @@ import {
   Eye,
   EyeOff,
   Globe2,
+  Layers,
   Moon,
   Plane,
+  Sparkles,
   Sun,
   Sunset,
   TowerControl,
 } from 'lucide-react';
-import { CameraPreset, LightingMode, TakeoffPhase } from '../types/aviation';
+import { CameraPreset, GraphicsQuality, LightingMode, TakeoffPhase } from '../types/aviation';
 
 interface TopHeaderBarProps {
   cameraPreset: CameraPreset;
   onSelectCamera: (preset: CameraPreset) => void;
   lightingMode: LightingMode;
   onSelectLighting: (mode: LightingMode) => void;
+  quality: GraphicsQuality;
+  onSelectQuality: (quality: GraphicsQuality) => void;
   hudCollapsed: boolean;
   onToggleHud: () => void;
   takeoffPhase: TakeoffPhase;
@@ -28,7 +32,7 @@ const CAMERA_BUTTONS: Array<{
   shortLabel: string;
   icon: React.FC<{ className?: string }>;
 }> = [
-  { id: 'overview', label: 'Airport Overview (Dual Runways)', shortLabel: 'Dual Runways', icon: Camera },
+  { id: 'overview', label: 'Airport Overview (4 Runways)', shortLabel: '4 Runways', icon: Camera },
   { id: 'tower', label: 'Control Tower View', shortLabel: 'ATC Tower', icon: TowerControl },
   { id: 'departure', label: 'Departure Runway Close-up', shortLabel: '08R Close-up', icon: Plane },
   { id: 'globe', label: 'Global Route Map', shortLabel: 'Global Map', icon: Globe2 },
@@ -49,14 +53,16 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
   onSelectCamera,
   lightingMode,
   onSelectLighting,
+  quality,
+  onSelectQuality,
   hudCollapsed,
   onToggleHud,
   takeoffPhase,
 }) => {
   return (
     <header className="pointer-events-none fixed top-0 left-0 right-0 z-30 p-3 md:px-4 md:py-3 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2">
-      {/* Brand + Meridian-Style Live Tower Pill */}
-      <div className="pointer-events-auto bento-card rounded-full px-3 py-1.5 flex items-center gap-2.5 shrink-0">
+      {/* Brand + Live Tower Pill */}
+      <div className="pointer-events-auto bento-card rounded-full px-3 py-1.5 flex items-center gap-2 shrink-0">
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sky-400 via-cyan-300 to-violet-400 flex items-center justify-center shadow-sm">
           <Plane className="w-3.5 h-3.5 text-slate-950 -rotate-45" />
         </div>
@@ -64,12 +70,12 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
           <span className="font-display font-extrabold tracking-tight text-sm ink-primary whitespace-nowrap">
             RMO SKYHUB
           </span>
-          <span className="hidden xl:inline text-[11px] ink-muted whitespace-nowrap">
+          <span className="hidden 2xl:inline text-[11px] ink-muted whitespace-nowrap">
             Chișinău · LUKK
           </span>
         </div>
 
-        <div className="hidden 2xl:flex items-center gap-1.5 pl-2.5 ml-0.5 border-l border-slate-400/30">
+        <div className="hidden 2xl:flex items-center gap-1.5 pl-2 ml-0.5 border-l border-slate-400/30">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-beacon" />
           <span className="font-mono text-[10px] font-semibold ink-secondary whitespace-nowrap">
             {takeoffPhase === 'idle' ? 'RMO Tower : Live' : '08R Takeoff : Active'}
@@ -96,7 +102,7 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
                   ? { backgroundColor: 'var(--pill-active-bg)', color: 'var(--pill-active-ink)' }
                   : undefined
               }
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                 active ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
               }`}
             >
@@ -108,12 +114,53 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
         })}
       </nav>
 
-      {/* Environment Lighting Toggle + Panel Hide Toggle */}
+      {/* Graphics Quality (HD / Clay Low-PC) + Lighting + Hide Toggle */}
       <div className="pointer-events-auto flex items-center gap-1.5 shrink-0">
+        {/* HD PBR vs Clay Low-PC Toggle */}
+        <div
+          role="group"
+          aria-label="3D Graphics Quality"
+          className="bento-card rounded-full p-1 flex items-center gap-0.5"
+        >
+          <button
+            type="button"
+            onClick={() => onSelectQuality('hd')}
+            title="HD PBR Textures, Shadows & Bloom"
+            style={
+              quality === 'hd'
+                ? { backgroundColor: 'var(--pill-active-bg)', color: 'var(--pill-active-ink)' }
+                : undefined
+            }
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              quality === 'hd' ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            <span>HD</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onSelectQuality('clay')}
+            title="Clay Low-PC Architectural Maquette Mode"
+            style={
+              quality === 'clay'
+                ? { backgroundColor: 'var(--pill-active-bg)', color: 'var(--pill-active-ink)' }
+                : undefined
+            }
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              quality === 'clay' ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
+            }`}
+          >
+            <Layers className="w-3 h-3" />
+            <span>Clay</span>
+          </button>
+        </div>
+
+        {/* Day / Sunset / Night */}
         <div
           role="group"
           aria-label="Environment Lighting"
-          className="bento-card rounded-full p-1 flex items-center gap-1"
+          className="bento-card rounded-full p-1 flex items-center gap-0.5"
         >
           {LIGHTING_OPTIONS.map((opt) => {
             const Icon = opt.icon;
@@ -123,17 +170,17 @@ export const TopHeaderBar: React.FC<TopHeaderBarProps> = ({
                 key={opt.id}
                 type="button"
                 onClick={() => onSelectLighting(opt.id)}
+                className={`flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                  active ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
+                }`}
                 style={
                   active
                     ? { backgroundColor: 'var(--pill-active-bg)', color: 'var(--pill-active-ink)' }
                     : undefined
                 }
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                  active ? 'font-semibold shadow-sm' : 'ink-secondary hover:bg-slate-500/10'
-                }`}
               >
                 <Icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{opt.label}</span>
+                <span className="hidden xl:inline">{opt.label}</span>
               </button>
             );
           })}

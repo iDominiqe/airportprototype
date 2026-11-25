@@ -2,7 +2,14 @@ import React, { Component, ReactNode, Suspense, lazy, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { CameraPreset, Destination, LightingMode, TakeoffPhase, TelemetryState } from '../types/aviation';
+import {
+  CameraPreset,
+  Destination,
+  GraphicsQuality,
+  LightingMode,
+  TakeoffPhase,
+  TelemetryState,
+} from '../types/aviation';
 import { GATE_COORDS } from './airportLayout';
 import { AirportArchitecture } from './AirportArchitecture';
 import { AirTrafficController } from './AirTrafficController';
@@ -16,6 +23,7 @@ const LazyGlobalRouteGlobe = lazy(() =>
 
 interface AirportCanvasProps {
   lightingMode: LightingMode;
+  quality: GraphicsQuality;
   cameraPreset: CameraPreset;
   cameraActionNonce: number;
   selectedDestination: Destination;
@@ -61,6 +69,7 @@ class CanvasErrorBoundary extends Component<
 
 export const AirportCanvas: React.FC<AirportCanvasProps> = ({
   lightingMode,
+  quality,
   cameraPreset,
   cameraActionNonce,
   selectedDestination,
@@ -86,20 +95,24 @@ export const AirportCanvas: React.FC<AirportCanvasProps> = ({
     <CanvasErrorBoundary>
       <div className="w-full h-full absolute inset-0">
         <Canvas
-          shadows
-          dpr={[1, 2]}
-          camera={{ position: [-34, 42, 88], fov: 44, near: 0.5, far: 650 }}
+          shadows={quality === 'hd'}
+          dpr={quality === 'hd' ? [1, 2] : 1}
+          camera={{ position: [-56, 74, 138], fov: 44, near: 0.5, far: 800 }}
           onCreated={() => {
             onCanvasReady();
           }}
           gl={{
-            antialias: true,
+            antialias: quality === 'hd',
             toneMapping: THREE.ACESFilmicToneMapping,
             toneMappingExposure: lightingMode === 'night' ? 1.18 : 1.04,
             powerPreference: 'high-performance',
           }}
         >
-          <EnvironmentRig lightingMode={lightingMode} cameraPreset={cameraPreset} />
+          <EnvironmentRig
+            lightingMode={lightingMode}
+            quality={quality}
+            cameraPreset={cameraPreset}
+          />
 
           <CameraRig
             cameraPreset={cameraPreset}
@@ -111,14 +124,21 @@ export const AirportCanvas: React.FC<AirportCanvasProps> = ({
 
           {!isGlobe ? (
             <group>
-              <AirportArchitecture lightingMode={lightingMode} takeoffPhase={takeoffPhase} />
+              <AirportArchitecture
+                lightingMode={lightingMode}
+                quality={quality}
+                takeoffPhase={takeoffPhase}
+              />
               <AirTrafficController
                 lightingMode={lightingMode}
+                quality={quality}
                 heroTakeoffPhase={takeoffPhase}
+                heroTrackRef={heroTrackRef}
               />
               <HeroTakeoffAircraft
                 variant={selectedDestination.aircraftVariant}
                 lightingMode={lightingMode}
+                quality={quality}
                 takeoffRunId={takeoffRunId}
                 takeoffActive={takeoffActive}
                 heroTrackRef={heroTrackRef}

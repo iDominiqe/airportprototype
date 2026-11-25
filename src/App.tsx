@@ -5,6 +5,7 @@ import {
   BookingRecord,
   CameraPreset,
   Destination,
+  GraphicsQuality,
   LightingMode,
   Seat,
   TakeoffPhase,
@@ -32,6 +33,7 @@ export const App: React.FC = () => {
   const { stages, progress, sceneReady, markCanvasCreated } = useScenePreloader();
 
   const [lightingMode, setLightingMode] = useState<LightingMode>('day');
+  const [quality, setQuality] = useState<GraphicsQuality>('hd');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('overview');
   const [cameraActionNonce, setCameraActionNonce] = useState(0);
   const [hudCollapsed, setHudCollapsed] = useState(false);
@@ -113,6 +115,7 @@ export const App: React.FC = () => {
       {/* Full-Bleed Interactive 3D Airport & Globe Viewport */}
       <AirportCanvas
         lightingMode={lightingMode}
+        quality={quality}
         cameraPreset={cameraPreset}
         cameraActionNonce={cameraActionNonce}
         selectedDestination={selectedDestination}
@@ -130,6 +133,8 @@ export const App: React.FC = () => {
         onSelectCamera={handleSelectCamera}
         lightingMode={lightingMode}
         onSelectLighting={setLightingMode}
+        quality={quality}
+        onSelectQuality={setQuality}
         hudCollapsed={hudCollapsed}
         onToggleHud={() => setHudCollapsed((v) => !v)}
         takeoffPhase={takeoffPhase}
@@ -150,20 +155,25 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Dual-Runway Live Ops Pill (Bottom Right in Idle Mode) */}
+      {/* Multi-Runway Live Ops Pill (Bottom Right in Idle Mode) */}
       {takeoffPhase === 'idle' && (
-        <div className="pointer-events-none fixed bottom-4 right-4 z-20 hidden md:flex items-center gap-3 bento-card rounded-full px-4 py-2 text-[11px] font-mono ink-primary">
+        <div className="pointer-events-none fixed bottom-4 right-4 z-20 hidden md:flex items-center gap-2.5 bento-card rounded-full px-4 py-2 text-[11px] font-mono ink-primary">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-sky-500" />
-            <span>RWY 08L: ARR</span>
+            <span>08L ARR</span>
           </div>
-          <span className="opacity-30">|</span>
+          <span className="opacity-30">·</span>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>RWY 08R: DEP</span>
+            <span>08R DEP</span>
+          </div>
+          <span className="opacity-30">·</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>27R / 35 MULTI</span>
           </div>
           <span className="opacity-30">|</span>
-          <span className="ink-muted">Drag to orbit · Scroll to zoom</span>
+          <span className="ink-muted">{quality === 'hd' ? 'HD PBR' : 'Clay Maquette'}</span>
         </div>
       )}
 

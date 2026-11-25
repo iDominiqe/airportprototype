@@ -4,7 +4,7 @@ import { OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { CameraPreset, Destination, TakeoffPhase } from '../types/aviation';
-import { RUNWAY_RIGHT_Z } from './airportLayout';
+import { RUNWAY_SOUTH_DEP_Z } from './airportLayout';
 import { HeroTrackSnapshot } from './HeroTakeoffAircraft';
 
 interface CameraRigProps {
@@ -16,10 +16,10 @@ interface CameraRigProps {
 }
 
 const PRESET_VIEWS: Record<CameraPreset, { pos: [number, number, number]; target: [number, number, number] }> = {
-  overview: { pos: [-34, 42, 88], target: [-14, 2, 4] },
-  tower: { pos: [-44, 21.5, -13], target: [8, 2, 18] },
-  departure: { pos: [-92, 9.5, RUNWAY_RIGHT_Z + 17], target: [-28, 2.5, RUNWAY_RIGHT_Z] },
-  globe: { pos: [-12, 16, 38], target: [-5, 0, 0] },
+  overview: { pos: [-56, 74, 138], target: [8, 2, -6] },
+  tower: { pos: [-62, 26, 16], target: [16, 2, 34] },
+  departure: { pos: [-114, 11, RUNWAY_SOUTH_DEP_Z + 18], target: [-30, 3, RUNWAY_SOUTH_DEP_Z] },
+  globe: { pos: [-12, 16, 40], target: [-4.5, 0, 0] },
 };
 
 export const CameraRig: React.FC<CameraRigProps> = ({
@@ -114,7 +114,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({
       dampingFactor={0.07}
       maxPolarAngle={cameraPreset === 'globe' ? Math.PI * 0.88 : Math.PI / 2 - 0.03}
       minDistance={cameraPreset === 'globe' ? 23 : 12}
-      maxDistance={cameraPreset === 'globe' ? 68 : 185}
+      maxDistance={cameraPreset === 'globe' ? 68 : 260}
       onStart={() => {
         userDraggingRef.current = true;
         transitionFramesRef.current = 0;

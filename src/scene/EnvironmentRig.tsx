@@ -3,10 +3,11 @@ import { useFrame } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { CameraPreset, LightingMode } from '../types/aviation';
+import { CameraPreset, GraphicsQuality, LightingMode } from '../types/aviation';
 
 interface EnvironmentRigProps {
   lightingMode: LightingMode;
+  quality: GraphicsQuality;
   cameraPreset: CameraPreset;
 }
 
@@ -15,15 +16,20 @@ const CLOUD_SEEDS = [
   [-20, 66, -65, 1.6],
   [55, 64, -48, 1.4],
   [125, 68, -12, 1.8],
-  [170, 66, 62, 2.0],
-  [215, 72, 58, 1.7],
-  [80, 61, 78, 1.5],
+  [170, 66, 92, 2.0],
+  [215, 72, 82, 1.7],
+  [80, 61, 98, 1.5],
   [-130, 65, 55, 1.4],
 ];
 
-export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, cameraPreset }) => {
+export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({
+  lightingMode,
+  quality,
+  cameraPreset,
+}) => {
   const cloudsRef = useRef<THREE.Group>(null);
   const isGlobe = cameraPreset === 'globe';
+  const isClay = quality === 'clay';
 
   const palette = useMemo(() => {
     if (isGlobe) {
@@ -37,6 +43,45 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
         hemiGround: '#0f172a',
         hemiIntensity: 0.75,
         bloomIntensity: 0.85,
+      };
+    }
+    if (isClay) {
+      if (lightingMode === 'night') {
+        return {
+          bg: '#0b1220',
+          fog: '#0b1220',
+          sunColor: '#bae6fd',
+          sunIntensity: 1.4,
+          sunPos: [-50, 75, 45] as [number, number, number],
+          hemiSky: '#38bdf8',
+          hemiGround: '#1e293b',
+          hemiIntensity: 0.9,
+          bloomIntensity: 0,
+        };
+      }
+      if (lightingMode === 'sunset') {
+        return {
+          bg: '#f2e4dc',
+          fog: '#f2e4dc',
+          sunColor: '#fdba74',
+          sunIntensity: 1.9,
+          sunPos: [-95, 38, 45] as [number, number, number],
+          hemiSky: '#fed7aa',
+          hemiGround: '#cbd5e1',
+          hemiIntensity: 1.1,
+          bloomIntensity: 0,
+        };
+      }
+      return {
+        bg: '#e8edf2',
+        fog: '#e8edf2',
+        sunColor: '#ffffff',
+        sunIntensity: 2.0,
+        sunPos: [75, 95, 55] as [number, number, number],
+        hemiSky: '#ffffff',
+        hemiGround: '#cbd5e1',
+        hemiIntensity: 1.25,
+        bloomIntensity: 0,
       };
     }
     if (lightingMode === 'night') {
@@ -58,7 +103,7 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
         fog: '#47283b',
         sunColor: '#fb923c',
         sunIntensity: 2.4,
-        sunPos: [-110, 22, 40] as [number, number, number],
+        sunPos: [-110, 24, 40] as [number, number, number],
         hemiSky: '#fdba74',
         hemiGround: '#1e1b2e',
         hemiIntensity: 0.75,
@@ -66,23 +111,23 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
       };
     }
     return {
-      bg: '#7db4e0',
-      fog: '#b8d8f0',
+      bg: '#8bc0e8',
+      fog: '#c4def3',
       sunColor: '#fffbeb',
       sunIntensity: 2.8,
-      sunPos: [75, 85, 55] as [number, number, number],
+      sunPos: [85, 95, 65] as [number, number, number],
       hemiSky: '#e0f2fe',
       hemiGround: '#334155',
-      hemiIntensity: 0.9,
+      hemiIntensity: 0.95,
       bloomIntensity: 0.35,
     };
-  }, [lightingMode, isGlobe]);
+  }, [lightingMode, isGlobe, isClay]);
 
   const starGeo = useMemo(() => {
-    const count = 480;
+    const count = 420;
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const r = 210 + (i % 7) * 14;
+      const r = 240 + (i % 7) * 14;
       const theta = ((i * 137.5) % 360) * (Math.PI / 180);
       const phi = Math.acos(0.15 + ((i * 0.6180339) % 0.85));
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -95,7 +140,7 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
   }, []);
 
   useFrame((_, delta) => {
-    if (cloudsRef.current && !isGlobe) {
+    if (cloudsRef.current && !isGlobe && !isClay) {
       cloudsRef.current.children.forEach((c, idx) => {
         c.position.x += delta * (0.45 + (idx % 3) * 0.2);
         if (c.position.x > 250) c.position.x = -170;
@@ -106,53 +151,53 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
   return (
     <>
       <color attach="background" args={[palette.bg]} />
-      {!isGlobe && <fog attach="fog" args={[palette.fog, 130, 310]} />}
+      {!isGlobe && <fog attach="fog" args={[palette.fog, 175, 420]} />}
 
-      <ambientLight intensity={lightingMode === 'night' && !isGlobe ? 0.25 : 0.42} />
+      <ambientLight intensity={isClay ? 0.68 : lightingMode === 'night' && !isGlobe ? 0.25 : 0.42} />
       <hemisphereLight args={[palette.hemiSky, palette.hemiGround, palette.hemiIntensity]} />
 
       <directionalLight
         position={palette.sunPos}
         intensity={palette.sunIntensity}
         color={palette.sunColor}
-        castShadow={!isGlobe}
+        castShadow={!isGlobe && !isClay}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-near={10}
-        shadow-camera-far={260}
-        shadow-camera-left={-110}
-        shadow-camera-right={110}
-        shadow-camera-top={75}
-        shadow-camera-bottom={-75}
+        shadow-camera-far={300}
+        shadow-camera-left={-150}
+        shadow-camera-right={150}
+        shadow-camera-top={110}
+        shadow-camera-bottom={-110}
         shadow-bias={-0.0005}
       />
 
-      {/* Procedural Studio / Sky Reflections without external HDR fetch */}
-      <Environment resolution={256} frames={1}>
-        <Lightformer
-          form="rect"
-          intensity={lightingMode === 'night' ? 0.6 : 2.2}
-          color={lightingMode === 'sunset' ? '#fdba74' : '#e0f2fe'}
-          position={[0, 12, 0]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={[30, 30, 1]}
-        />
-        <Lightformer
-          form="ring"
-          intensity={1.5}
-          color="#38bdf8"
-          position={[15, 6, 15]}
-          scale={12}
-        />
-      </Environment>
+      {!isClay && (
+        <Environment resolution={256} frames={1}>
+          <Lightformer
+            form="rect"
+            intensity={lightingMode === 'night' ? 0.6 : 2.2}
+            color={lightingMode === 'sunset' ? '#fdba74' : '#e0f2fe'}
+            position={[0, 12, 0]}
+            rotation={[Math.PI / 2, 0, 0]}
+            scale={[30, 30, 1]}
+          />
+          <Lightformer
+            form="ring"
+            intensity={1.5}
+            color="#38bdf8"
+            position={[15, 6, 15]}
+            scale={12}
+          />
+        </Environment>
+      )}
 
-      {/* Stylized Volumetric Climbout Clouds */}
-      {!isGlobe && (
+      {!isGlobe && !isClay && (
         <group ref={cloudsRef}>
           {CLOUD_SEEDS.map(([cx, cy, cz, sc], idx) => (
             <group key={`cloud-${idx}`} position={[cx, cy, cz]} scale={sc}>
               <mesh position={[0, 0, 0]}>
-                <sphereGeometry args={[4.5, 12, 10]} />
+                <sphereGeometry args={[4.5, 10, 8]} />
                 <meshStandardMaterial
                   color={lightingMode === 'sunset' ? '#fed7aa' : lightingMode === 'night' ? '#334155' : '#ffffff'}
                   transparent
@@ -161,18 +206,9 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
                 />
               </mesh>
               <mesh position={[3.6, -0.5, 0.8]}>
-                <sphereGeometry args={[3.4, 10, 10]} />
+                <sphereGeometry args={[3.4, 8, 8]} />
                 <meshStandardMaterial
                   color={lightingMode === 'sunset' ? '#fdba74' : lightingMode === 'night' ? '#334155' : '#f8fafc'}
-                  transparent
-                  opacity={lightingMode === 'night' ? 0.2 : 0.68}
-                  roughness={1}
-                />
-              </mesh>
-              <mesh position={[-3.4, -0.4, -0.6]}>
-                <sphereGeometry args={[3.1, 10, 10]} />
-                <meshStandardMaterial
-                  color={lightingMode === 'sunset' ? '#fb923c' : lightingMode === 'night' ? '#334155' : '#f1f5f9'}
                   transparent
                   opacity={lightingMode === 'night' ? 0.2 : 0.68}
                   roughness={1}
@@ -183,22 +219,22 @@ export const EnvironmentRig: React.FC<EnvironmentRigProps> = ({ lightingMode, ca
         </group>
       )}
 
-      {/* Night / Orbital Starfield */}
       {(lightingMode === 'night' || isGlobe) && (
         <points geometry={starGeo}>
           <pointsMaterial color="#e0f2fe" size={0.95} transparent opacity={0.85} sizeAttenuation />
         </points>
       )}
 
-      {/* Selective Post-Processing Bloom for HDR Emissive Lights & Exhaust */}
-      <EffectComposer multisampling={4}>
-        <Bloom
-          mipmapBlur
-          luminanceThreshold={1.08}
-          luminanceSmoothing={0.25}
-          intensity={palette.bloomIntensity}
-        />
-      </EffectComposer>
+      {!isClay && (
+        <EffectComposer multisampling={4}>
+          <Bloom
+            mipmapBlur
+            luminanceThreshold={1.08}
+            luminanceSmoothing={0.25}
+            intensity={palette.bloomIntensity}
+          />
+        </EffectComposer>
+      )}
     </>
   );
 };

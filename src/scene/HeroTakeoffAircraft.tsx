@@ -1,8 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { AircraftVariant, LightingMode, TakeoffPhase, TelemetryState } from '../types/aviation';
-import { APRON_TAXI_Z, GATE_COORDS, RUNWAY_RIGHT_Z, WEST_ENTRY_X } from './airportLayout';
+import {
+  AircraftVariant,
+  GraphicsQuality,
+  LightingMode,
+  TakeoffPhase,
+  TelemetryState,
+} from '../types/aviation';
+import {
+  APRON_TAXI_Z,
+  createSmoothPath,
+  GATE_COORDS,
+  RUNWAY_SOUTH_DEP_Z,
+  WEST_ENTRY_X,
+} from './airportLayout';
 import { AircraftModel } from './AircraftModel';
 
 export interface HeroTrackSnapshot {
@@ -16,6 +28,7 @@ export interface HeroTrackSnapshot {
 interface HeroTakeoffAircraftProps {
   variant: AircraftVariant;
   lightingMode: LightingMode;
+  quality: GraphicsQuality;
   takeoffRunId: number;
   takeoffActive: boolean;
   heroTrackRef: React.MutableRefObject<HeroTrackSnapshot>;
@@ -23,11 +36,17 @@ interface HeroTakeoffAircraftProps {
   onTelemetryUpdate: (telemetry: TelemetryState) => void;
 }
 
-const GATE_G3 = GATE_COORDS.G3; // { x: -7.2, z: -15.8 }
+const GATE_G3 = GATE_COORDS.G3; // { x: -8, z: 6.5 }
+
+function lerpAngle(current: number, target: number, alpha: number): number {
+  const diff = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+  return current + diff * alpha;
+}
 
 export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
   variant,
   lightingMode,
+  quality,
   takeoffRunId,
   takeoffActive,
   heroTrackRef,
@@ -38,14 +57,30 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
   const startTimeRef = useRef<number | null>(null);
   const lastPhaseRef = useRef<TakeoffPhase>('idle');
   const lastUiPushRef = useRef(0);
+  const headingRef = useRef(Math.PI / 2);
 
   const [gearDeploy, setGearDeploy] = useState(1);
   const [thrustLevel, setThrustLevel] = useState(0.08);
   const [landingLights, setLandingLights] = useState(false);
 
-  // Reset clock whenever a new takeoff run starts or resets to idle
+  // Smooth rounded taxiway spline from pushback end -> apron taxiway -> West Entry -> 08R
+  const taxiSpline = useMemo(
+    () =>
+      createSmoothPath([
+        [GATE_G3.x - 5, 0, APRON_TAXI_Z],
+        [-45, 0, APRON_TAXI_Z],
+        [WEST_ENTRY_X + 6, 0, APRON_TAXI_Z],
+        [WEST_ENTRY_X, 0, APRON_TAXI_Z + 8],
+        [WEST_ENTRY_X, 0, RUNWAY_SOUTH_DEP_Z - 9],
+        [WEST_ENTRY_X + 7, 0, RUNWAY_SOUTH_DEP_Z],
+        [-76, 0, RUNWAY_SOUTH_DEP_Z],
+      ]),
+    []
+  );
+
   useEffect(() => {
     startTimeRef.current = null;
+    headingRef.current = Math.PI / 2;
     lastPhaseRef.current = takeoffActive ? 'pushback' : 'idle';
     if (!takeoffActive) {
       setGearDeploy(1);
@@ -59,8 +94,9 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
     }
   }, [takeoffRunId, takeoffActive, heroTrackRef]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!groupRef.current) return;
+    const dt = Math.min(0.05, delta);
 
     if (!takeoffActive) {
       groupRef.current.position.set(GATE_G3.x, 0, GATE_G3.z);
@@ -79,7 +115,7 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
     let x = GATE_G3.x;
     let y = 0;
     let z = GATE_G3.z;
-    let heading = Math.PI / 2;
+    let targetHeading = Math.PI / 2;
     let pitch = 0;
     let bank = 0;
     let phase: TakeoffPhase = 'pushback';
@@ -90,108 +126,98 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
     let altitudeM = 0;
     let atcCallout = 'RMO Ground: Tug connected, pushback approved Gate G3.';
 
-    if (t < 4.5) {
-      // 0 -> 4.5s: Pushback from Gate G3 onto apron taxiway facing West
-      const u = t / 4.5;
+    if (t < 5.5) {
+      // 0 -> 5.5s: Calm pushback from Gate G3 (+Z) onto South Apron Taxiway facing West
+      const u = t / 5.5;
       const smooth = u * u * (3 - 2 * u);
-      x = THREE.MathUtils.lerp(GATE_G3.x, GATE_G3.x - 4.5, smooth);
+      x = THREE.MathUtils.lerp(GATE_G3.x, GATE_G3.x - 5, smooth);
       z = THREE.MathUtils.lerp(GATE_G3.z, APRON_TAXI_Z, smooth);
-      heading = THREE.MathUtils.lerp(Math.PI / 2, Math.PI, smooth);
+      targetHeading = THREE.MathUtils.lerp(Math.PI / 2, Math.PI, smooth);
       phase = 'pushback';
-      curThrust = 0.18;
-      airspeedKmh = Math.round(smooth * 12);
+      curThrust = 0.16;
+      airspeedKmh = Math.round(smooth * 10);
       atcCallout = 'RMO Ground: Cleared pushback Gate G3, facing West on Apron Alpha.';
-    } else if (t < 11.5) {
-      // 4.5 -> 11.5s: Taxi West to West Entry, turn South to 08R, line up East
-      const u = (t - 4.5) / 7.0;
+    } else if (t < 17.5) {
+      // 5.5 -> 17.5s: Calm ~32 KM/H spline taxi around West Entry onto South Outer 08R
+      const u = (t - 5.5) / 12.0;
+      const pt = taxiSpline.getPointAt(u);
+      const tan = taxiSpline.getTangentAt(u);
+      x = pt.x;
+      z = pt.z;
+      targetHeading = Math.atan2(-tan.z, tan.x);
       phase = 'taxi';
-      curThrust = 0.28;
-      airspeedKmh = 34;
+      curThrust = 0.24;
+      curLights = u > 0.85;
+      airspeedKmh = 32;
       atcCallout = 'RMO Tower: Taxi via Alpha & Whiskey-1, line up Runway 08R.';
-      if (u < 0.48) {
-        const s = u / 0.48;
-        x = THREE.MathUtils.lerp(GATE_G3.x - 4.5, WEST_ENTRY_X, s);
-        z = APRON_TAXI_Z;
-        heading = s > 0.85 ? THREE.MathUtils.lerp(Math.PI, Math.PI * 1.5, (s - 0.85) / 0.15) : Math.PI;
-      } else if (u < 0.84) {
-        const s = (u - 0.48) / 0.36;
-        x = WEST_ENTRY_X;
-        z = THREE.MathUtils.lerp(APRON_TAXI_Z, RUNWAY_RIGHT_Z, s);
-        heading = s > 0.82 ? THREE.MathUtils.lerp(-Math.PI / 2, 0, (s - 0.82) / 0.18) : -Math.PI / 2;
-      } else {
-        const s = (u - 0.84) / 0.16;
-        x = THREE.MathUtils.lerp(WEST_ENTRY_X, -74, s);
-        z = RUNWAY_RIGHT_Z;
-        heading = 0;
-        curLights = true;
-      }
-    } else if (t < 14.0) {
-      // 11.5 -> 14.0s: Hold brakes & spool up engines to TOGA thrust
-      const u = (t - 11.5) / 2.5;
+    } else if (t < 20.5) {
+      // 17.5 -> 20.5s: Hold brakes & spool up engines to TOGA thrust
+      const u = (t - 17.5) / 3.0;
       phase = 'spool';
-      x = -74;
-      z = RUNWAY_RIGHT_Z;
-      heading = 0;
-      curThrust = THREE.MathUtils.lerp(0.32, 1.0, u);
+      x = -76;
+      z = RUNWAY_SOUTH_DEP_Z;
+      targetHeading = 0;
+      curThrust = THREE.MathUtils.lerp(0.28, 1.0, u);
       curLights = true;
-      airspeedKmh = Math.round(u * 15);
+      airspeedKmh = Math.round(u * 14);
       atcCallout = 'RMO Tower: Winds 080° at 14 km/h, Runway 08R cleared for takeoff.';
-    } else if (t < 19.5) {
-      // 14.0 -> 19.5s: Accelerate down Runway 08R to V2
-      const u = (t - 14.0) / 5.5;
+    } else if (t < 27.0) {
+      // 20.5 -> 27.0s: Progressive heavy-jet acceleration down 08R to V2
+      const u = (t - 20.5) / 6.5;
       phase = 'takeoff_roll';
-      x = THREE.MathUtils.lerp(-74, 24, u * u);
-      z = RUNWAY_RIGHT_Z;
-      heading = 0;
-      pitch = u > 0.84 ? THREE.MathUtils.lerp(0, 0.25, (u - 0.84) / 0.16) : 0;
+      x = THREE.MathUtils.lerp(-76, 30, u * u);
+      z = RUNWAY_SOUTH_DEP_Z;
+      targetHeading = 0;
+      pitch = u > 0.84 ? THREE.MathUtils.lerp(0, 0.24, (u - 0.84) / 0.16) : 0;
       y = u > 0.9 ? THREE.MathUtils.lerp(0, 0.9, (u - 0.9) / 0.1) : 0;
       curThrust = 1.0;
       curLights = true;
-      airspeedKmh = Math.round(THREE.MathUtils.lerp(22, 300, u));
+      airspeedKmh = Math.round(THREE.MathUtils.lerp(18, 298, u));
       altitudeM = Math.round(y * 40);
       atcCallout = u < 0.55 ? 'Crew: Thrust set, 150 km/h checked.' : 'Crew: V1 (270 km/h)... Rotate!';
-    } else if (t < 27.5) {
-      // 19.5 -> 27.5s: Positive climb, gear up, climb smoothly into the clouds
-      const u = (t - 19.5) / 8.0;
+    } else if (t < 35.0) {
+      // 27.0 -> 35.0s: Positive climb, gear up, climb smoothly into sky
+      const u = (t - 27.0) / 8.0;
       phase = 'rotate_climb';
-      x = THREE.MathUtils.lerp(24, 195, u);
+      x = THREE.MathUtils.lerp(30, 198, u);
       y = THREE.MathUtils.lerp(0.9, 44, Math.pow(u, 1.15));
-      z = RUNWAY_RIGHT_Z + Math.pow(Math.max(0, u - 0.3), 1.5) * 20;
-      pitch = THREE.MathUtils.lerp(0.25, 0.16, u);
-      bank = u > 0.35 && u < 0.9 ? 0.14 * Math.sin(((u - 0.35) / 0.55) * Math.PI) : 0;
-      heading = -Math.pow(Math.max(0, u - 0.3), 1.4) * 0.22;
-      curGear = t < 20.8 ? 1 : t > 23.6 ? 0 : 1 - (t - 20.8) / 2.8;
+      z = RUNWAY_SOUTH_DEP_Z + Math.pow(Math.max(0, u - 0.3), 1.5) * 20;
+      pitch = THREE.MathUtils.lerp(0.24, 0.15, u);
+      bank = u > 0.35 && u < 0.9 ? 0.13 * Math.sin(((u - 0.35) / 0.55) * Math.PI) : 0;
+      targetHeading = -Math.pow(Math.max(0, u - 0.3), 1.4) * 0.22;
+      curGear = t < 28.4 ? 1 : t > 31.4 ? 0 : 1 - (t - 28.4) / 3.0;
       curThrust = 0.96;
-      curLights = t < 24.5;
-      airspeedKmh = Math.round(THREE.MathUtils.lerp(300, 460, u));
+      curLights = t < 32.0;
+      airspeedKmh = Math.round(THREE.MathUtils.lerp(298, 462, u));
       altitudeM = Math.round(y * 42);
       atcCallout =
-        t < 23.5
+        t < 31.2
           ? 'Crew: Positive rate — Gear Up!'
           : 'RMO Departure: Radar contact, climb and maintain 5,500 m.';
     } else {
-      // 27.5s+: Departed — graceful steady cruise climb
-      const extra = Math.min(25, t - 27.5);
+      // 35.0s+: Departed — steady cruise climb
+      const extra = Math.min(25, t - 35.0);
       phase = 'departed';
-      x = 195 + extra * 9.5;
+      x = 198 + extra * 9.5;
       y = 44 + extra * 1.45;
-      z = RUNWAY_RIGHT_Z + 11.7 + extra * 2.2;
+      z = RUNWAY_SOUTH_DEP_Z + 11.7 + extra * 2.2;
       pitch = 0.12;
-      heading = -0.14;
+      targetHeading = -0.14;
       curGear = 0;
       curThrust = 0.88;
       curLights = false;
-      airspeedKmh = Math.round(464 + extra * 6.5);
+      airspeedKmh = Math.round(466 + extra * 6.5);
       altitudeM = Math.round(y * 42);
       atcCallout = 'FLIGHT DEPARTED — HAVE A NICE TRIP!';
     }
 
+    headingRef.current = lerpAngle(headingRef.current, targetHeading, dt * 6);
     groupRef.current.position.set(x, y, z);
     groupRef.current.rotation.order = 'YZX';
-    groupRef.current.rotation.set(bank, heading, pitch);
+    groupRef.current.rotation.set(bank, headingRef.current, pitch);
 
     heroTrackRef.current.position.set(x, y, z);
-    heroTrackRef.current.heading = heading;
+    heroTrackRef.current.heading = headingRef.current;
     heroTrackRef.current.pitch = pitch;
     heroTrackRef.current.phase = phase;
     heroTrackRef.current.elapsed = t;
@@ -201,7 +227,6 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
       onPhaseChange(phase);
     }
 
-    // Throttle React state updates cleanly to ~10 Hz
     if (state.clock.elapsedTime - lastUiPushRef.current > 0.1) {
       lastUiPushRef.current = state.clock.elapsedTime;
       setGearDeploy(curGear);
@@ -228,6 +253,7 @@ export const HeroTakeoffAircraft: React.FC<HeroTakeoffAircraftProps> = ({
         thrustLevel={thrustLevel}
         landingLights={landingLights}
         lightingMode={lightingMode}
+        quality={quality}
       />
     </group>
   );

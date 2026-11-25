@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { AircraftVariant, AirlineLivery, LightingMode } from '../types/aviation';
+import { AircraftVariant, AirlineLivery, GraphicsQuality, LightingMode } from '../types/aviation';
 import { AIRCRAFT_SPECS, getAircraftGeometries } from './aircraftGeometry';
 import { getFuselageTextures, LIVERY_PALETTES } from './aircraftTextures';
 
@@ -12,6 +12,7 @@ interface AircraftModelProps {
   thrustLevel?: number; // 0..1
   landingLights?: boolean;
   lightingMode?: LightingMode;
+  quality?: GraphicsQuality;
   showReverseThrust?: boolean;
   scale?: number;
 }
@@ -23,13 +24,18 @@ export const AircraftModel: React.FC<AircraftModelProps> = ({
   thrustLevel = 0.2,
   landingLights = false,
   lightingMode = 'day',
+  quality = 'hd',
   showReverseThrust = false,
   scale = 1,
 }) => {
+  const isClay = quality === 'clay';
   const spec = AIRCRAFT_SPECS[variant];
   const palette = LIVERY_PALETTES[livery];
   const geos = useMemo(() => getAircraftGeometries(variant), [variant]);
-  const skins = useMemo(() => getFuselageTextures(variant, livery), [variant, livery]);
+  const skins = useMemo(
+    () => (isClay ? null : getFuselageTextures(variant, livery)),
+    [variant, livery, isClay]
+  );
 
   const beaconTopRef = useRef<THREE.MeshStandardMaterial>(null);
   const strobeTailRef = useRef<THREE.MeshStandardMaterial>(null);
@@ -72,15 +78,19 @@ export const AircraftModel: React.FC<AircraftModelProps> = ({
   return (
     <group scale={scale}>
       {/* Lofted Parametric Fuselage with Livery & Illuminated Windows */}
-      <mesh geometry={geos.fuselage} position={[0, fuselageCenterY, 0]} castShadow receiveShadow>
-        <meshStandardMaterial
-          map={skins.map}
-          emissiveMap={skins.emissiveMap}
-          emissive="#ffffff"
-          emissiveIntensity={windowEmissive}
-          metalness={0.28}
-          roughness={0.24}
-        />
+      <mesh geometry={geos.fuselage} position={[0, fuselageCenterY, 0]} castShadow={!isClay} receiveShadow={!isClay}>
+        {isClay || !skins ? (
+          <meshStandardMaterial color="#f8fafc" roughness={0.65} metalness={0.05} />
+        ) : (
+          <meshStandardMaterial
+            map={skins.map}
+            emissiveMap={skins.emissiveMap}
+            emissive="#ffffff"
+            emissiveIntensity={windowEmissive}
+            metalness={0.28}
+            roughness={0.24}
+          />
+        )}
       </mesh>
 
       {/* Aerodynamic Belly Wing-to-Body Fairing */}

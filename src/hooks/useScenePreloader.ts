@@ -51,12 +51,14 @@ export function useScenePreloader() {
       await nextFrame();
       if (cancelled) return;
 
-      // Stage 0: Runways & Terminal PBR Textures
+      // Stage 0: Runways & Terminal PBR Textures (all 4 multi-sided runways)
       setStageState(0, 'loading');
       setProgress(12);
       await nextFrame();
-      getRunwayTexture('left');
-      getRunwayTexture('right');
+      getRunwayTexture('08L', '26R', false);
+      getRunwayTexture('08R', '26L', false);
+      getRunwayTexture('09L', '27R', false);
+      getRunwayTexture('17', '35', false);
       getApronTexture();
       getTerminalSignTexture();
       if (cancelled) return;
