@@ -383,9 +383,9 @@ function NorthArrivalPlane({
     () =>
       createSmoothPath([
         [-42, 0, RUNWAY_NORTH_Z],
-        [-58, 0, RUNWAY_NORTH_Z + 3],
-        [-64, 0, RUNWAY_NORTH_Z + 12],
-        [-52, 0, NORTH_TAXI_Z],
+        [-58, 0, RUNWAY_NORTH_Z],
+        [-62, 0, RUNWAY_NORTH_Z + 8],
+        [-58, 0, NORTH_TAXI_Z],
         [-8, 0, NORTH_TAXI_Z],
       ]),
     []
@@ -498,9 +498,10 @@ function EastCrosswindDeparturePlane({
     () =>
       createSmoothPath([
         [EAST_TAXI_X, 0, 44],
-        [EAST_TAXI_X + 2, 0, 62],
-        [RUNWAY_EAST_X - 4, 0, 65],
-        [RUNWAY_EAST_X, 0, 60],
+        [EAST_TAXI_X, 0, 58],
+        [EAST_TAXI_X + 4, 0, RUNWAY_SOUTH_DEP_Z],
+        [RUNWAY_EAST_X - 4, 0, RUNWAY_SOUTH_DEP_Z],
+        [RUNWAY_EAST_X, 0, 58],
       ]),
     []
   );
@@ -533,14 +534,14 @@ function EastCrosswindDeparturePlane({
     } else if (t < 11.5) {
       const u = (t - 8.5) / 3.0;
       x = RUNWAY_EAST_X;
-      z = 60;
+      z = 58;
       targetHeading = Math.PI / 2; // Northbound (-Z)
       curThrust = THREE.MathUtils.lerp(0.25, 1.0, u);
       curLights = true;
     } else if (t < 19.5) {
       const u = (t - 11.5) / 8.0;
       x = RUNWAY_EAST_X;
-      z = THREE.MathUtils.lerp(60, -40, u * u);
+      z = THREE.MathUtils.lerp(58, -40, u * u);
       targetHeading = Math.PI / 2;
       y = u > 0.88 ? THREE.MathUtils.lerp(0, 1.2, (u - 0.88) / 0.12) : 0;
       pitch = u > 0.8 ? THREE.MathUtils.lerp(0, 0.23, (u - 0.8) / 0.2) : 0;

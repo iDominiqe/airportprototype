@@ -17,7 +17,7 @@ interface CameraRigProps {
 
 const PRESET_VIEWS: Record<CameraPreset, { pos: [number, number, number]; target: [number, number, number] }> = {
   overview: { pos: [-56, 74, 138], target: [8, 2, -6] },
-  tower: { pos: [-62, 26, 16], target: [16, 2, 34] },
+  tower: { pos: [-54, 24, 6], target: [16, 2, 34] },
   departure: { pos: [-114, 11, RUNWAY_SOUTH_DEP_Z + 18], target: [-30, 3, RUNWAY_SOUTH_DEP_Z] },
   globe: { pos: [-12, 16, 40], target: [-4.5, 0, 0] },
 };

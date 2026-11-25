@@ -85,24 +85,43 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
       const rwyEdge: THREE.Vector3[] = [];
       const approach: THREE.Vector3[] = [];
 
-      // South Apron Taxiway lights
-      for (let x = -94; x <= 94; x += 7) {
-        blue.push(new THREE.Vector3(x, 0.14, APRON_TAXI_Z - 2.3));
-        blue.push(new THREE.Vector3(x, 0.14, APRON_TAXI_Z + 2.3));
+      // South Apron Taxiway lights (x in [-94, 112], skipping connector junctions)
+      for (let x = -90; x <= 108; x += 7) {
+        const nearSouthConn =
+          Math.abs(x - WEST_ENTRY_X) < 4 ||
+          Math.abs(x - 0) < 4 ||
+          Math.abs(x - EAST_EXIT_X) < 4 ||
+          Math.abs(x - 92) < 4;
+        if (!nearSouthConn) {
+          blue.push(new THREE.Vector3(x, 0.14, APRON_TAXI_Z + 2.4));
+        }
+        blue.push(new THREE.Vector3(x, 0.14, APRON_TAXI_Z - 2.4));
         green.push(new THREE.Vector3(x, 0.08, APRON_TAXI_Z));
       }
 
-      // North Perimeter Taxiway lights
-      for (let x = -92; x <= 112; x += 8) {
-        blue.push(new THREE.Vector3(x, 0.14, NORTH_TAXI_Z - 2.2));
-        blue.push(new THREE.Vector3(x, 0.14, NORTH_TAXI_Z + 2.2));
+      // North Perimeter Taxiway lights (x in [-92, 112], skipping connector junctions)
+      for (let x = -90; x <= 108; x += 8) {
+        const nearNorthConn =
+          Math.abs(x - WEST_ENTRY_X) < 4 ||
+          Math.abs(x + 62) < 4 ||
+          Math.abs(x - 84) < 4;
+        if (!nearNorthConn) {
+          blue.push(new THREE.Vector3(x, 0.14, NORTH_TAXI_Z - 2.3));
+        }
+        blue.push(new THREE.Vector3(x, 0.14, NORTH_TAXI_Z + 2.3));
         green.push(new THREE.Vector3(x, 0.08, NORTH_TAXI_Z));
       }
 
-      // East Perimeter Taxiway lights
-      for (let z = -66; z <= 64; z += 8) {
-        blue.push(new THREE.Vector3(EAST_TAXI_X - 2.2, 0.14, z));
-        blue.push(new THREE.Vector3(EAST_TAXI_X + 2.2, 0.14, z));
+      // East Perimeter Taxiway lights (z in [-66, 64], skipping feeder junctions)
+      for (let z = -62; z <= 60; z += 8) {
+        const nearFeeder =
+          Math.abs(z - NORTH_TAXI_Z) < 4 ||
+          Math.abs(z - APRON_TAXI_Z) < 4 ||
+          Math.abs(z - RUNWAY_SOUTH_DEP_Z) < 4;
+        if (!nearFeeder) {
+          blue.push(new THREE.Vector3(EAST_TAXI_X + 2.3, 0.14, z));
+        }
+        blue.push(new THREE.Vector3(EAST_TAXI_X - 2.3, 0.14, z));
         green.push(new THREE.Vector3(EAST_TAXI_X, 0.08, z));
       }
 
@@ -245,62 +264,92 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
         )}
       </mesh>
 
-      {/* TAXIWAY NETWORK (South Apron, North Perimeter, East Perimeter + Connectors) */}
+      {/* TAXIWAY NETWORK (South Apron, North Perimeter, East Perimeter + Flush Connectors) */}
       <group>
-        {/* South Apron Taxiway */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, APRON_TAXI_Z]}>
-          <planeGeometry args={[200, 4.8]} />
+        {/* South Apron Taxiway: x in [-94.3, +114.3] joining West Entry & East Perimeter flush */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.016, APRON_TAXI_Z]}>
+          <planeGeometry args={[208.6, 4.8]} />
           <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.021, APRON_TAXI_Z]}>
-          <planeGeometry args={[196, 0.22]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.022, APRON_TAXI_Z]}>
+          <planeGeometry args={[204, 0.22]} />
           <meshStandardMaterial color="#facc15" roughness={0.5} />
         </mesh>
 
-        {/* North Perimeter Taxiway */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.015, NORTH_TAXI_Z]}>
-          <planeGeometry args={[210, 4.6]} />
+        {/* North Perimeter Taxiway: x in [-94.3, +114.3] joining North Connectors & East Perimeter flush */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.016, NORTH_TAXI_Z]}>
+          <planeGeometry args={[208.6, 4.6]} />
           <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.021, NORTH_TAXI_Z]}>
-          <planeGeometry args={[206, 0.2]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.022, NORTH_TAXI_Z]}>
+          <planeGeometry args={[204, 0.2]} />
           <meshStandardMaterial color="#facc15" roughness={0.5} />
         </mesh>
 
-        {/* East Perimeter Taxiway */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[EAST_TAXI_X, 0.015, -1]} >
-          <planeGeometry args={[4.6, 134]} />
+        {/* East Perimeter Taxiway: z in [-68.3, +66.3] joining North, South Apron & 08R/35 flush */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[EAST_TAXI_X, 0.016, -1]}>
+          <planeGeometry args={[4.6, 134.6]} />
           <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
         </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[EAST_TAXI_X, 0.021, -1]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[EAST_TAXI_X, 0.022, -1]}>
           <planeGeometry args={[0.2, 130]} />
           <meshStandardMaterial color="#facc15" roughness={0.5} />
         </mesh>
 
-        {/* Connectors: West Entry, East-South Exit, East Runway Feeders, North Connector */}
+        {/* South Runway Connectors (segmented centerlines stop cleanly at runway edges) */}
         {[
-          { x: WEST_ENTRY_X, z: 41, w: 4.6, d: 48 },
-          { x: EAST_EXIT_X, z: 28, w: 4.4, d: 24 },
-          { x: 0, z: 41, w: 4.4, d: 46 },
-          { x: 82, z: -74, w: 4.4, d: 18 },
+          { x: WEST_ENTRY_X, full: true },
+          { x: 0, full: true },
+          { x: EAST_EXIT_X, full: false },
+          { x: 92, full: true },
         ].map((c, idx) => (
-          <group key={`conn-${idx}`}>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[c.x, 0.014, c.z]}>
-              <planeGeometry args={[c.w, c.d]} />
+          <group key={`south-conn-${idx}`}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[c.x, 0.015, c.full ? 41 : 28]}>
+              <planeGeometry args={[4.6, c.full ? 46 : 20]} />
               <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
             </mesh>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[c.x, 0.02, c.z]}>
-              <planeGeometry args={[0.2, c.d - 2]} />
+            {/* Centerline between Apron (z=18) and 08L edge (z=32.5) */}
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[c.x, 0.025, 25.25]}>
+              <planeGeometry args={[0.24, 14.5]} />
+              <meshStandardMaterial color="#facc15" roughness={0.5} />
+            </mesh>
+            {/* Centerline between 08L edge (z=43.5) and 08R edge (z=58.5) */}
+            {c.full && (
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[c.x, 0.025, 51]}>
+                <planeGeometry args={[0.24, 15]} />
+                <meshStandardMaterial color="#facc15" roughness={0.5} />
+              </mesh>
+            )}
+          </group>
+        ))}
+
+        {/* North Runway 09L / 27R Connectors (z = -66 to -82) */}
+        {[WEST_ENTRY_X, -62, 84].map((nx, idx) => (
+          <group key={`north-conn-${idx}`}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[nx, 0.015, -74]}>
+              <planeGeometry args={[4.6, 16]} />
+              <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
+            </mesh>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[nx, 0.025, -71.5]}>
+              <planeGeometry args={[0.24, 11]} />
               <meshStandardMaterial color="#facc15" roughness={0.5} />
             </mesh>
           </group>
         ))}
 
-        {/* East Crosswind Feeder */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[120, 0.014, 62]}>
-          <planeGeometry args={[18, 4.4]} />
-          <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
-        </mesh>
+        {/* East Crosswind Runway 17 / 35 Feeders (x = 112 to 128) */}
+        {[RUNWAY_SOUTH_DEP_Z, APRON_TAXI_Z, NORTH_TAXI_Z].map((ez, idx) => (
+          <group key={`east-feeder-${idx}`}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[120, 0.015, ez]}>
+              <planeGeometry args={[16, 4.6]} />
+              <meshStandardMaterial color={taxiSurfaceColor} roughness={0.88} />
+            </mesh>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[117.5, 0.025, ez]}>
+              <planeGeometry args={[11, 0.24]} />
+              <meshStandardMaterial color="#facc15" roughness={0.5} />
+            </mesh>
+          </group>
+        ))}
       </group>
 
       {/* 4 MULTI-SIDED RUNWAYS */}
@@ -573,27 +622,46 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
           );
         })}
 
-        {/* Clean Elevated Architectural Viaduct Roads (NO cars, NO people) */}
+        {/* Clean West Landside Approach Boulevard & Roundabout (NO cars, NO people, zero runway crossings) */}
         <group>
-          {/* West-South Curved Approach Viaduct */}
-          <mesh rotation={[-Math.PI / 2, 0, -0.35]} position={[-86, 0.04, 24]}>
-            <planeGeometry args={[12, 128]} />
+          {/* West Highway Approach (x = -144 to -108, z = -26) */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-126, 0.02, -26]}>
+            <planeGeometry args={[36, 6.4]} />
             <meshStandardMaterial color={isClay ? '#cbd5e1' : '#26303d'} roughness={0.9} />
           </mesh>
-          <mesh rotation={[-Math.PI / 2, 0, -0.35]} position={[-86, 0.05, 24]}>
-            <planeGeometry args={[0.25, 124]} />
-            <meshStandardMaterial color="#e2e8f0" />
+          {[-140, -133, -126, -119, -112].map((dx) => (
+            <mesh key={`w-dash-${dx}`} rotation={[-Math.PI / 2, 0, 0]} position={[dx, 0.03, -26]}>
+              <planeGeometry args={[3.4, 0.22]} />
+              <meshStandardMaterial color="#f8fafc" />
+            </mesh>
+          ))}
+
+          {/* Flush West Landside Roundabout at (-98, -26) */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-98, 0.025, -26]}>
+            <ringGeometry args={[7.2, 12.2, 48]} />
+            <meshStandardMaterial color={isClay ? '#cbd5e1' : '#2b3645'} roughness={0.88} />
           </mesh>
-          {/* Elevated Forecourt Ring Road */}
-          <mesh position={[-58, 1.2, -26]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[14, 2.1, 8, 36]} />
-            <meshStandardMaterial color={isClay ? '#e2e8f0' : '#334155'} roughness={0.75} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-98, 0.03, -26]}>
+            <ringGeometry args={[9.6, 9.8, 48]} />
+            <meshStandardMaterial color="#f8fafc" />
           </mesh>
-          {/* Roundabout Lagoon */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-58, 0.04, -26]}>
-            <circleGeometry args={[9.5, 24]} />
-            <meshStandardMaterial color={isClay ? '#93c5fd' : '#0284c7'} roughness={0.2} />
+          {/* Roundabout Central Lagoon */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-98, 0.035, -26]}>
+            <circleGeometry args={[7.0, 32]} />
+            <meshStandardMaterial color={isClay ? '#93c5fd' : '#0284c7'} roughness={0.18} />
           </mesh>
+
+          {/* Terminal Forecourt Boulevard (x = -87 to -55, z = -26) */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-71, 0.02, -26]}>
+            <planeGeometry args={[32, 6.4]} />
+            <meshStandardMaterial color={isClay ? '#cbd5e1' : '#26303d'} roughness={0.9} />
+          </mesh>
+          {[-83, -76, -69, -62].map((dx) => (
+            <mesh key={`f-dash-${dx}`} rotation={[-Math.PI / 2, 0, 0]} position={[dx, 0.03, -26]}>
+              <planeGeometry args={[3.4, 0.22]} />
+              <meshStandardMaterial color="#f8fafc" />
+            </mesh>
+          ))}
         </group>
 
         {/* Sculptural Mini Wind Turbines in Eco-Campus */}
@@ -619,10 +687,10 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
           </group>
         ))}
 
-        {/* Landscaped Stylized Architectural Tree Clusters */}
+        {/* Landscaped Stylized Architectural Tree Clusters (clear of all roads & ATC island) */}
         {[
           [-68, -46], [-56, -54], [-40, -64], [0, -60], [40, -62], [62, -46], [68, -22],
-          [-72, -10], [-20, -34], [20, -34], [64, -8],
+          [-72, -10], [-20, -34], [20, -34], [64, -8], [-112, -38], [-112, -14],
         ].map(([tx, tz], idx) => (
           <group key={`tree-${idx}`} position={[tx, 0, tz]} scale={0.85 + (idx % 3) * 0.16}>
             <mesh position={[0, 0.85, 0]}>
@@ -637,8 +705,12 @@ export const AirportArchitecture: React.FC<AirportArchitectureProps> = ({
         ))}
       </group>
 
-      {/* SCULPTURAL ATC CONTROL SPIRE */}
-      <group position={[-68, 0, 14]}>
+      {/* SCULPTURAL ATC CONTROL SPIRE (Dedicated Landscaped Island, completely clear of roads & taxiways) */}
+      <group position={[-62, 0, 2]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.025, 0]}>
+          <circleGeometry args={[5.4, 24]} />
+          <meshStandardMaterial color={isClay ? '#e2e8f0' : '#475569'} roughness={0.75} />
+        </mesh>
         <mesh position={[0, 1.4, 0]} castShadow={!isClay}>
           <cylinderGeometry args={[3.2, 3.8, 2.8, 12]} />
           <meshStandardMaterial color="#334155" metalness={0.45} roughness={0.5} />
